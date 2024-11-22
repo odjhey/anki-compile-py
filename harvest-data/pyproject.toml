@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "harvest-data"
+version = "0.1.0"
+description = ""
+authors = ["Odelon Jhey Pacalso <odjhey@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.scripts]
+main = "harvest_data.main:run"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.32.3"
+
+
+[tool.poetry.group.dev.dependencies]
+types-requests = "^2.32.0.20241016"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
