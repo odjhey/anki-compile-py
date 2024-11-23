@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "explore"
+version = "0.1.0"
+description = ""
+authors = ["Odelon Jhey Pacalso <odjhey@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pandas = "^2.2.3"
+regex = "^2024.11.6"
+
+[tool.poetry.group.dev.dependencies]
+pandas-stubs = "^2.2.3.241009"
+jupyter = "^1.1.1"
+types-regex = "^2024.11.6.20241108"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
