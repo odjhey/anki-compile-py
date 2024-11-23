@@ -29,7 +29,7 @@ def upload_as_anki_note(kanji, canonical, words):
     note = {
         "deckName": DECK_NAME,
         "modelName": MODEL_NAME,
-        "fields": {"Kanji": kanji, "Words": words_string},
+        "fields": {"Kanji": kanji, "Words": words_string, "CanonicalId": canonical},
     }
 
     # Send request to AnkiConnect
