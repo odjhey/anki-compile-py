@@ -7,6 +7,7 @@ readme = "README.md"
 
 [tool.poetry.scripts]
 main = "harvest_data.main:run"
+upload = "harvest_data.main:upload_to_anki"
 
 [tool.poetry.dependencies]
 python = "^3.10"

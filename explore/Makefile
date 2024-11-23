@@ -1,2 +1,2 @@
 copy-inputs:
-	cp ../harvest-data/output/* inputs/
+	cp ../harvest-data/outputs/* inputs/
