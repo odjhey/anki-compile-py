@@ -1,5 +1,6 @@
 import pickle
 import requests
+import json
 
 # AnkiConnect settings
 ANKI_CONNECT_URL = "http://localhost:8765"
@@ -30,15 +31,8 @@ def upload_as_anki_note(kanji, canonical, wordsMeta):
     #  {'Word': '起こる', 'Transliteration': 'おこる', 'Meaning': 'happen', 'PoS': 'Verb'},
     #  {'Word': '早起き', 'Transliteration': 'はやおき', 'Meaning': 'getting up early', 'PoS': 'Verbal Noun'}]
 
-    words = [word["Word"] for word in wordsMeta]
-    words_string = "<br/>".join(words)
-
-    words_with_transliteration = [
-        f"{ word['Word'] } ({word['Transliteration']}) - {word['Meaning']}"
-        for word in wordsMeta
-    ]
-
-    words_with_transliteration_string = "<br/>".join(words_with_transliteration)
+    # wordsMeta toJson
+    words_meta_json = json.dumps(wordsMeta)
 
     # Construct the note
     note = {
@@ -46,9 +40,8 @@ def upload_as_anki_note(kanji, canonical, wordsMeta):
         "modelName": MODEL_NAME,
         "fields": {
             "Kanji": kanji,
-            "Words": words_string,
             "CanonicalId": canonical,
-            "WordsWithMeaning": words_with_transliteration_string,
+            "richInfo": words_meta_json,
         },
     }
 
