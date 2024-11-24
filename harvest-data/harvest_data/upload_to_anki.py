@@ -10,7 +10,6 @@ MODEL_NAME = "zekanji"  # Use your note type name
 def get_kanji_map():
     kanji_map = pickle.load(open("inputs/kanji_map.pkl", "rb"))
 
-    print(list(kanji_map))
     # convert all to list
     return list(kanji_map.values())
 
@@ -21,15 +20,36 @@ def get_kanji_map():
     # return [first_item]
 
 
-def upload_as_anki_note(kanji, canonical, words):
+def upload_as_anki_note(kanji, canonical, wordsMeta):
     """Add a kanji note to Anki."""
+
+    # words has format
+    # [{'Word': '起こす', 'Transliteration': 'おこす', 'Meaning': 'wake (someone) up', 'PoS': 'Verb'},
+    #  {'Word': '起きる', 'Transliteration': 'おきる', 'Meaning': 'occur, happen', 'PoS': 'Verb'},
+    #  {'Word': '起きる', 'Transliteration': 'おきる', 'Meaning': 'get up, get out of bed', 'PoS': 'Verb'},
+    #  {'Word': '起こる', 'Transliteration': 'おこる', 'Meaning': 'happen', 'PoS': 'Verb'},
+    #  {'Word': '早起き', 'Transliteration': 'はやおき', 'Meaning': 'getting up early', 'PoS': 'Verbal Noun'}]
+
+    words = [word["Word"] for word in wordsMeta]
     words_string = "<br/>".join(words)
+
+    words_with_transliteration = [
+        f"{ word['Word'] } ({word['Transliteration']}) - {word['Meaning']}"
+        for word in wordsMeta
+    ]
+
+    words_with_transliteration_string = "<br/>".join(words_with_transliteration)
 
     # Construct the note
     note = {
         "deckName": DECK_NAME,
         "modelName": MODEL_NAME,
-        "fields": {"Kanji": kanji, "Words": words_string, "CanonicalId": canonical},
+        "fields": {
+            "Kanji": kanji,
+            "Words": words_string,
+            "CanonicalId": canonical,
+            "WordsWithMeaning": words_with_transliteration_string,
+        },
     }
 
     # Send request to AnkiConnect
