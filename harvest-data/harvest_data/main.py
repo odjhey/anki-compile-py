@@ -12,8 +12,8 @@ def run():
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     # add date and time to filename
-    save_to_text(cards, f"output/output_{timestamp}.txt")
-    save_to_pickle(cards, f"output/output_{timestamp}.pkl")
+    save_to_text(cards, f"outputs/output_{timestamp}.txt")
+    save_to_pickle(cards, f"outputs/output_{timestamp}.pkl")
 
 
 def upload_to_anki():

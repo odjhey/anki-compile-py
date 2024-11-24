@@ -17,13 +17,23 @@ def get_all_cards(deck_name):
     """Fetch all cards from the specified deck."""
     note_ids = invoke("findNotes", query=f"deck:{deck_name}")
     notes = invoke("notesInfo", notes=note_ids)
-    desired_fields = {"Word", "Transliteration", "Meaning", "Part of Speech"}
+    desired_fields = {
+        "Word",
+        "Transliteration",
+        "Meaning",
+        "Part of Speech",
+        "Word Audio",
+    }
 
     return [
         {
             "id": note["noteId"],
             "fields": {
-                ("PoS" if key == "Part of Speech" else key): field["value"]
+                (
+                    "PoS"
+                    if key == "Part of Speech"
+                    else "WordAudio" if key == "Word Audio" else key
+                ): field["value"]
                 for key, field in note["fields"].items()
                 if key in desired_fields
             },

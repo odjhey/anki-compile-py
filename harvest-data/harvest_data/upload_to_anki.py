@@ -1,6 +1,7 @@
 import pickle
 import requests
 import json
+import regex as re
 
 # AnkiConnect settings
 ANKI_CONNECT_URL = "http://localhost:8765"
@@ -9,7 +10,7 @@ MODEL_NAME = "zekanji"  # Use your note type name
 
 
 def get_kanji_map():
-    kanji_map = pickle.load(open("inputs/kanji_map.pkl", "rb"))
+    kanji_map = pickle.load(open("inputs/kanji_map_2024-11-24_10-30-57.pkl", "rb"))
 
     # convert all to list
     return list(kanji_map.values())
@@ -21,7 +22,7 @@ def get_kanji_map():
     # return [first_item]
 
 
-def update_anki_note(note_id, kanji, canonical, words_meta_json):
+def update_anki_note(note_id, kanji, canonical, words_meta_json, audio_list):
     """Update an existing Anki note."""
     response = requests.post(
         ANKI_CONNECT_URL,
@@ -35,6 +36,7 @@ def update_anki_note(note_id, kanji, canonical, words_meta_json):
                         "Kanji": kanji,
                         "CanonicalId": canonical,
                         "richInfo": words_meta_json,
+                        "audioList": audio_list,
                     },
                 },
             },
@@ -51,7 +53,7 @@ def update_anki_note(note_id, kanji, canonical, words_meta_json):
         print(f"Failed to connect to AnkiConnect for updating {kanji}")
 
 
-def add_anki_note(kanji, canonical, words_meta_json):
+def add_anki_note(kanji, canonical, words_meta_json, audio_list):
     """Add a new Anki note."""
     note = {
         "deckName": DECK_NAME,
@@ -60,6 +62,7 @@ def add_anki_note(kanji, canonical, words_meta_json):
             "Kanji": kanji,
             "CanonicalId": canonical,
             "richInfo": words_meta_json,
+            "audioList": audio_list,
         },
     }
 
@@ -78,9 +81,32 @@ def add_anki_note(kanji, canonical, words_meta_json):
         print(f"Failed to connect to AnkiConnect for adding {kanji}")
 
 
+def transform_word_audio(words_meta):
+    """Transform WordAudio field into an array of filenames."""
+    for item in words_meta:
+        if "WordAudio" in item and item["WordAudio"]:
+            # Extract filenames from WordAudio field
+            item["WordAudio"] = [
+                match.group(1)  # Group 1 contains the filename
+                for match in re.finditer(r"\[sound:(.*?)\]", item["WordAudio"])
+            ]
+    return words_meta
+
+
+def getAudio(words_meta):
+    """Get all audio filenames from words_meta."""
+    audio = []
+    for item in words_meta:
+        if "WordAudio" in item and item["WordAudio"]:
+            audio.append(item["WordAudio"])
+    return "".join(audio)
+
+
 def upload_as_anki_note(kanji, canonical, wordsMeta):
     """Add or update a kanji note in Anki."""
-    words_meta_json = json.dumps(wordsMeta)
+    audio_list = getAudio(wordsMeta)
+    wordsMeta = transform_word_audio(wordsMeta)
+    words_meta_json = json.dumps(wordsMeta, ensure_ascii=False)
 
     # Find existing notes with the same Kanji or CanonicalId
     query = f"deck:{DECK_NAME} note:{MODEL_NAME} (Kanji:{kanji} AND CanonicalId:{canonical})"
@@ -105,7 +131,7 @@ def upload_as_anki_note(kanji, canonical, wordsMeta):
     if existing_notes:
         # Update the first matching note
         note_id = existing_notes[0]  # Assuming one match
-        update_anki_note(note_id, kanji, canonical, words_meta_json)
+        update_anki_note(note_id, kanji, canonical, words_meta_json, audio_list)
     else:
         # Add a new note
-        add_anki_note(kanji, canonical, words_meta_json)
+        add_anki_note(kanji, canonical, words_meta_json, audio_list)
