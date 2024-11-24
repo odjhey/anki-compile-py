@@ -21,20 +21,38 @@ def get_kanji_map():
     # return [first_item]
 
 
-def upload_as_anki_note(kanji, canonical, wordsMeta):
-    """Add a kanji note to Anki."""
+def update_anki_note(note_id, kanji, canonical, words_meta_json):
+    """Update an existing Anki note."""
+    response = requests.post(
+        ANKI_CONNECT_URL,
+        json={
+            "action": "updateNoteFields",
+            "version": 6,
+            "params": {
+                "note": {
+                    "id": note_id,
+                    "fields": {
+                        "Kanji": kanji,
+                        "CanonicalId": canonical,
+                        "richInfo": words_meta_json,
+                    },
+                },
+            },
+        },
+    )
 
-    # words has format
-    # [{'Word': '起こす', 'Transliteration': 'おこす', 'Meaning': 'wake (someone) up', 'PoS': 'Verb'},
-    #  {'Word': '起きる', 'Transliteration': 'おきる', 'Meaning': 'occur, happen', 'PoS': 'Verb'},
-    #  {'Word': '起きる', 'Transliteration': 'おきる', 'Meaning': 'get up, get out of bed', 'PoS': 'Verb'},
-    #  {'Word': '起こる', 'Transliteration': 'おこる', 'Meaning': 'happen', 'PoS': 'Verb'},
-    #  {'Word': '早起き', 'Transliteration': 'はやおき', 'Meaning': 'getting up early', 'PoS': 'Verbal Noun'}]
+    if response.status_code == 200:
+        result = response.json()
+        if "error" in result and result["error"]:
+            print(f"Error updating note for {kanji}: {result['error']}")
+        else:
+            print(f"Note for {kanji} updated successfully!")
+    else:
+        print(f"Failed to connect to AnkiConnect for updating {kanji}")
 
-    # wordsMeta toJson
-    words_meta_json = json.dumps(wordsMeta)
 
-    # Construct the note
+def add_anki_note(kanji, canonical, words_meta_json):
+    """Add a new Anki note."""
     note = {
         "deckName": DECK_NAME,
         "modelName": MODEL_NAME,
@@ -45,11 +63,11 @@ def upload_as_anki_note(kanji, canonical, wordsMeta):
         },
     }
 
-    # Send request to AnkiConnect
     response = requests.post(
         ANKI_CONNECT_URL,
         json={"action": "addNote", "version": 6, "params": {"note": note}},
     )
+
     if response.status_code == 200:
         result = response.json()
         if "error" in result and result["error"]:
@@ -57,4 +75,37 @@ def upload_as_anki_note(kanji, canonical, wordsMeta):
         else:
             print(f"Note for {kanji} added successfully!")
     else:
-        print(f"Failed to connect to AnkiConnect for {kanji}")
+        print(f"Failed to connect to AnkiConnect for adding {kanji}")
+
+
+def upload_as_anki_note(kanji, canonical, wordsMeta):
+    """Add or update a kanji note in Anki."""
+    words_meta_json = json.dumps(wordsMeta)
+
+    # Find existing notes with the same Kanji or CanonicalId
+    query = f"deck:{DECK_NAME} note:{MODEL_NAME} (Kanji:{kanji} AND CanonicalId:{canonical})"
+    response = requests.post(
+        ANKI_CONNECT_URL,
+        json={
+            "action": "findNotes",
+            "version": 6,
+            "params": {
+                "query": query,
+            },
+        },
+    )
+
+    if response.status_code == 200:
+        result = response.json()
+        existing_notes = result.get("result", [])
+    else:
+        print(f"Failed to query existing notes for {kanji}")
+        return
+
+    if existing_notes:
+        # Update the first matching note
+        note_id = existing_notes[0]  # Assuming one match
+        update_anki_note(note_id, kanji, canonical, words_meta_json)
+    else:
+        # Add a new note
+        add_anki_note(kanji, canonical, words_meta_json)
