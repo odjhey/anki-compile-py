@@ -1,3 +1,4 @@
+from .types import Cards
 import requests
 import pickle
 
@@ -13,7 +14,7 @@ def invoke(action, **params):
     return response.json()["result"]
 
 
-def get_all_cards(deck_name):
+def get_all_cards(deck_name) -> Cards:
     """Fetch all cards from the specified deck."""
     note_ids = invoke("findNotes", query=f"deck:{deck_name}")
     notes = invoke("notesInfo", notes=note_ids)
@@ -42,7 +43,7 @@ def get_all_cards(deck_name):
     ]
 
 
-def save_to_text(cards, file_path):
+def save_to_text(cards: Cards, file_path):
     with open(file_path, "w") as file:
         for card in cards:
             file.write(f"Card ID: {card['id']}\n")

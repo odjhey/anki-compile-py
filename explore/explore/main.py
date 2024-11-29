@@ -2,10 +2,15 @@ import pickle
 import pandas as pd
 import regex as re
 from collections import Counter
+import os
 
 
 def run():
-    v = pickle.load(open("../inputs/output_2024-11-24_10-28-54.pkl", "rb"))
+    # get input path relative to the current file, dynamically
+    input_path = os.path.join(
+        os.path.dirname(__file__), "../inputs/output_2024-11-24_10-28-54.pkl"
+    )
+    v = pickle.load(open(input_path, "rb"))
     df = pd.DataFrame(v)
 
     flattened_data = pd.concat(
